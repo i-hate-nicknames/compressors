@@ -28,10 +28,10 @@ int close_stream(Bitstream *bs);
 
 // write a single bit to the stream. The least significant
 // bit of c will be written
-int writebit(char c, Bitstream *bs);
+int writebit(unsigned char c, Bitstream *bs);
 
 // write first n bits from c into the stream
-int writebits(char c, int n, Bitstream *bs);
+int writebits(unsigned char c, int n, Bitstream *bs);
 
 // write the whole char into the bitstream
 int writechar(char c, Bitstream *bs);

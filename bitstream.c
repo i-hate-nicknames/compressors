@@ -24,7 +24,7 @@ int close_stream(Bitstream *bs) {
   return 0;
 }
 
-int writebit(char c, Bitstream *bs) {
+int writebit(unsigned char c, Bitstream *bs) {
   
   if (bs->bit_offset == BITS_BYTE) {
     bs->position++;
@@ -41,18 +41,26 @@ int writebit(char c, Bitstream *bs) {
   // return writebits(c, 1, bs);
 }
 
-int writebits(char c, int width, Bitstream *bs) {
+int writebits(unsigned char c, int width, Bitstream *bs) {
   // todo: write to the file if the buffer overflows
 
-  // todo: check current byte for overflow
-  exit(1); // not implemented
+  // what we want to write doesn't fit in the current byte
+  // we need to write the portion that fits
+  if (bs->bit_offset + width > BITS_BYTE) {
+    // write portion that fits in the current byte
+    int width_remaining = BITS_BYTE - bs->bit_offset;
+    int mask_remaining = ~(-1 << width_remaining);
+    bs->buf[bs->position] |= c & mask_remaining;
+    c = c >> width_remaining;
+    width = width - width_remaining;
+    bs->position++;
+    bs->bit_offset = 0;
+  }
   char current = bs->buf[bs->position];
-  char mask = (1<<(width-1));
-  char to_write = c & mask;
-  current = current | (to_write<<(bs->bit_offset));
+  int mask = ~(-1 << width);
+  current = current | ((c & mask) << bs->bit_offset);
   bs->buf[bs->position] = current;
   bs->bit_offset += width;
-  bs->position += 1;
   return 0;
 }
 
@@ -75,8 +83,8 @@ char readchar(Bitstream *bs) {
 int main() {
   FILE *fp = fopen("test", "w");
   Bitstream *bs = make_stream(fp);
-  for (int i = 0; i < 256; i++) {
-    writebit(1, bs);
+  for (int i = 0; i < 128; i++) {
+    writebits(3, 2, bs);
     /* writebit(0, bs); */
   }
   printf("pos: %d, offset: %d\n", bs->position, bs->bit_offset);
