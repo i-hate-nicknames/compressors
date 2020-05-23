@@ -4,7 +4,8 @@
 #include "bitstream.h"
 
 #define BITS_BYTE 8
-#define BUF_SIZE 1024
+
+int dump_buffer(Bitstream *bs);
 
 Bitstream *make_stream(FILE *fp) {
   Bitstream *bs = (Bitstream *) malloc(sizeof(Bitstream));
@@ -15,20 +16,32 @@ Bitstream *make_stream(FILE *fp) {
 }
 
 int close_stream(Bitstream *bs) {
-  // todo: error checks
+  int err = dump_buffer(bs);
+  free(bs);
+  return err;
+}
+
+int dump_buffer(Bitstream *bs) {
   if (bs->bit_offset != 0) {
     bs->position++;
   }
-  fwrite(bs->buf, 1, bs->position, bs->file);
-  free(bs);
+  int write_bytes = bs->position;
+  int written = fwrite(bs->buf, 1, write_bytes, bs->file);
+  bs->position = 0;
+  bs->bit_offset = 0;
+  if (write_bytes != written) {
+    return 1;
+  }
   return 0;
 }
 
 int writebit(unsigned char c, Bitstream *bs) {
-  
+  // todo: maybe use writebits to write a single bit
+  // but I think this one is more efficient. Need to measure
   if (bs->bit_offset == BITS_BYTE) {
     bs->position++;
     bs->bit_offset = 0;
+    // todo: if run out of buffer space, dump the buffer
   }
   char to_write = (1 & c)<<bs->bit_offset;
   char current = bs->buf[bs->position];
@@ -36,14 +49,9 @@ int writebit(unsigned char c, Bitstream *bs) {
   bs->buf[bs->position] = current;
   bs->bit_offset++;
   return 0;
-
-  // todo: implement writebits and do this
-  // return writebits(c, 1, bs);
 }
 
 int writebits(unsigned char c, int width, Bitstream *bs) {
-  // todo: write to the file if the buffer overflows
-
   // what we want to write doesn't fit in the current byte
   // we need to write the portion that fits
   if (bs->bit_offset + width > BITS_BYTE) {
@@ -55,6 +63,8 @@ int writebits(unsigned char c, int width, Bitstream *bs) {
     width = width - width_remaining;
     bs->position++;
     bs->bit_offset = 0;
+    // todo: if we run out of buffer space, then dump
+    // the buffer
   }
   char current = bs->buf[bs->position];
   int mask = ~(-1 << width);
@@ -84,7 +94,7 @@ int main() {
   FILE *fp = fopen("test", "w");
   Bitstream *bs = make_stream(fp);
   for (int i = 0; i < 128; i++) {
-    writebits(3, 2, bs);
+    writebits(~0, 1, bs);
     /* writebit(0, bs); */
   }
   printf("pos: %d, offset: %d\n", bs->position, bs->bit_offset);
