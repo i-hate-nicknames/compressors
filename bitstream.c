@@ -6,6 +6,7 @@
 #define BITS_BYTE 8
 
 int dump_buffer(Bitstream *bs);
+int appendbits(unsigned char c, int width, Bitstream *bs);
 
 Bitstream *make_stream(FILE *fp) {
   Bitstream *bs = (Bitstream *) malloc(sizeof(Bitstream));
@@ -36,41 +37,45 @@ int dump_buffer(Bitstream *bs) {
 }
 
 int writebit(unsigned char c, Bitstream *bs) {
-  // todo: maybe use writebits to write a single bit
-  // but I think this one is more efficient. Need to measure
-  if (bs->bit_offset == BITS_BYTE) {
-    bs->position++;
-    bs->bit_offset = 0;
-    // todo: if run out of buffer space, dump the buffer
-  }
-  char to_write = (1 & c)<<bs->bit_offset;
-  char current = bs->buf[bs->position];
-  current |= to_write;
-  bs->buf[bs->position] = current;
-  bs->bit_offset++;
-  return 0;
+  return writebits(c, 1, bs);
 }
 
 int writebits(unsigned char c, int width, Bitstream *bs) {
+  int width_remaining = BITS_BYTE - bs->bit_offset;
   // what we want to write doesn't fit in the current byte
   // we need to write the portion that fits
-  if (bs->bit_offset + width > BITS_BYTE) {
+  if (width_remaining < width) {
     // write portion that fits in the current byte
-    int width_remaining = BITS_BYTE - bs->bit_offset;
-    int mask_remaining = ~(-1 << width_remaining);
-    bs->buf[bs->position] |= c & mask_remaining;
+    int res = appendbits(c, width_remaining, bs);
+    if (res != 0) {
+      return res;
+    }
     c = c >> width_remaining;
     width = width - width_remaining;
+  }
+  return appendbits(c, width, bs);
+}
+
+// set first width bits of c into current byte in the buffer
+// assume it fits (remaining space in the byte is less than or
+// equal to width)
+int appendbits(unsigned char c, int width, Bitstream *bs) {
+  // cut the right portion of c and set it in the current byte
+  int mask = ~(-1 << width);
+  bs->buf[bs->position] |= (c & mask) << bs->bit_offset;
+  bs->bit_offset += width;
+  // if we crossed byte boundary, go to the next byte
+  if (bs->bit_offset == BITS_BYTE) {
     bs->position++;
     bs->bit_offset = 0;
-    // todo: if we run out of buffer space, then dump
-    // the buffer
   }
-  char current = bs->buf[bs->position];
-  int mask = ~(-1 << width);
-  current = current | ((c & mask) << bs->bit_offset);
-  bs->buf[bs->position] = current;
-  bs->bit_offset += width;
+  // if we ran out of buffer space, dump the buffer
+  if (bs->position == BUF_SIZE) {
+    int err = dump_buffer(bs);
+    if (err != 0) {
+      return err;
+    }
+  }
   return 0;
 }
 
@@ -93,7 +98,7 @@ char readchar(Bitstream *bs) {
 int main() {
   FILE *fp = fopen("test", "w");
   Bitstream *bs = make_stream(fp);
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < 256; i++) {
     writebits(~0, 1, bs);
     /* writebit(0, bs); */
   }
