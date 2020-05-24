@@ -23,7 +23,7 @@ typedef struct {
 } BitWriter;
 
 typedef struct {
-  int read_finished;
+  int size_bytes;
   FILE *file;
   struct bit_buffer buf;
 } BitReader;
@@ -52,14 +52,15 @@ int writebits(unsigned char c, int n, BitWriter *bw);
 int writechar(char c, BitWriter *bw);
 
 // read a single bit from the stream
-unsigned int readbit(BitReader *br);
+int readbit(BitReader *br, unsigned int *into);
 
-// read next n bits from the stream and return
-// it in a number x, that will have its first n
-// bits set to the bits read
-unsigned int readbits(int n, BitReader *br);
+// read next n bits from the stream and set them in the number
+// into, that will have its first n bits set to the bits read
+// return number of bits read. If that number is less than n,
+// assume an error or end of file.
+int readbits(int n, BitReader *br, unsigned int *into);
 
 // read next char from the stream
-char readchar(BitReader *br);
+int readchar(BitReader *br, unsigned int *into);
 
 #endif
