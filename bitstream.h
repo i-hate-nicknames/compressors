@@ -3,9 +3,7 @@
 
 #define BUF_SIZE 1024
 
-// Bitstream is a wrapper over a FILE that allows writing
-// and reading bits
-typedef struct bitstream {
+struct bit_buffer {
   // offset in the current byte, this is how many bits have
   // been written starting from the closest byte boundary
   int bit_offset;
@@ -13,38 +11,55 @@ typedef struct bitstream {
   int position;
   // buffer to hold data before returning to client in reads
   // and before the actual writing for writes
-  char buf[BUF_SIZE];
+  char data[BUF_SIZE];
+};
+
+// Bitstream is a wrapper over a FILE that allows writing
+// and reading bits
+typedef struct {
   // file from/into which to perform the io
   FILE *file;
-} Bitstream;
+  struct bit_buffer buf;
+} BitWriter;
 
-// make a new stream, positioned at the start of the file
-Bitstream *make_stream(FILE *fp);
+typedef struct {
+  int read_finished;
+  FILE *file;
+  struct bit_buffer buf;
+} BitReader;
+
+// make a new writer, positioned at the start of the file
+// assume file is opened for writing
+BitWriter *make_writer(FILE *fp);
+
+// make a new reader, positioned at the start of the file
+// assume file is opened for reading
+BitReader *make_reader(FILE *fp);
 
 // close this stream, forcing writes to be called on the file
 // stream pointer becomes invalid after this call
 // Note: this doesn't close the underlying file
-int close_stream(Bitstream *bs);
+int close_stream(BitWriter *bw);
 
 // write a single bit to the stream. The least significant
 // bit of c will be written
-int writebit(unsigned char c, Bitstream *bs);
+int writebit(unsigned char c, BitWriter *bw);
 
 // write first n bits from c into the stream
-int writebits(unsigned char c, int n, Bitstream *bs);
+int writebits(unsigned char c, int n, BitWriter *bw);
 
 // write the whole char into the bitstream
-int writechar(char c, Bitstream *bs);
+int writechar(char c, BitWriter *bw);
 
 // read a single bit from the stream
-unsigned int readbit(Bitstream *bs);
+unsigned int readbit(BitReader *br);
 
 // read next n bits from the stream and return
 // it in a number x, that will have its first n
 // bits set to the bits read
-unsigned int readbits(int n, Bitstream *bs);
+unsigned int readbits(int n, BitReader *br);
 
 // read next char from the stream
-char readchar(Bitstream *bs);
+char readchar(BitReader *br);
 
 #endif

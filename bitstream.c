@@ -5,73 +5,77 @@
 
 #define BITS_BYTE 8
 
-int dump_buffer(Bitstream *bs);
-int appendbits(unsigned char c, int width, Bitstream *bs);
+int dump_buffer(BitWriter *bw);
+int appendbits(unsigned char c, int width, BitWriter *bw);
 
-Bitstream *make_stream(FILE *fp) {
-  Bitstream *bs = (Bitstream *) malloc(sizeof(Bitstream));
-  bs->bit_offset = 0;
-  bs->position = 0;
-  bs->file = fp;
-  return bs;
+BitWriter *make_stream(FILE *fp) {
+  BitWriter *bw = (BitWriter *) malloc(sizeof(BitWriter));
+  bw->buf.bit_offset = 0;
+  bw->buf.position = 0;
+  bw->file = fp;
+  return bw;
 }
 
-int close_stream(Bitstream *bs) {
-  int err = dump_buffer(bs);
-  free(bs);
+int close_stream(BitWriter *bw) {
+  int err = dump_buffer(bw);
+  free(bw);
   return err;
 }
 
-int dump_buffer(Bitstream *bs) {
-  if (bs->bit_offset != 0) {
-    bs->position++;
+int dump_buffer(BitWriter *bw) {
+  if (bw->buf.bit_offset != 0) {
+    bw->buf.position++;
   }
-  int write_bytes = bs->position;
-  int written = fwrite(bs->buf, 1, write_bytes, bs->file);
-  bs->position = 0;
-  bs->bit_offset = 0;
+  int write_bytes = bw->buf.position;
+  int written = fwrite(bw->buf.data, 1, write_bytes, bw->file);
+  bw->buf.position = 0;
+  bw->buf.bit_offset = 0;
   if (write_bytes != written) {
     return 1;
   }
   return 0;
 }
 
-int writebit(unsigned char c, Bitstream *bs) {
-  return writebits(c, 1, bs);
+int writebit(unsigned char c, BitWriter *bw) {
+  return writebits(c, 1, bw);
 }
 
-int writebits(unsigned char c, int width, Bitstream *bs) {
-  int width_remaining = BITS_BYTE - bs->bit_offset;
+int writechar(char c, BitWriter *bw) {
+  return writebits(c, BITS_BYTE, bw);
+}
+
+int writebits(unsigned char c, int width, BitWriter *bw) {
+  int width_remaining = BITS_BYTE - bw->buf.bit_offset;
   // what we want to write doesn't fit in the current byte
   // we need to write the portion that fits
   if (width_remaining < width) {
     // write portion that fits in the current byte
-    int res = appendbits(c, width_remaining, bs);
+    int res = appendbits(c, width_remaining, bw);
     if (res != 0) {
       return res;
     }
     c = c >> width_remaining;
     width = width - width_remaining;
   }
-  return appendbits(c, width, bs);
+  return appendbits(c, width, bw);
 }
 
 // set first width bits of c into current byte in the buffer
 // assume it fits (remaining space in the byte is less than or
 // equal to width)
-int appendbits(unsigned char c, int width, Bitstream *bs) {
+int appendbits(unsigned char c, int width, BitWriter *bw) {
   // cut the right portion of c and set it in the current byte
   int mask = ~(-1 << width);
-  bs->buf[bs->position] |= (c & mask) << bs->bit_offset;
-  bs->bit_offset += width;
+  bw->buf.data[bw->buf.position] |= (c & mask) << bw->buf.bit_offset;
+  bw->buf.bit_offset += width;
   // if we crossed byte boundary, go to the next byte
-  if (bs->bit_offset == BITS_BYTE) {
-    bs->position++;
-    bs->bit_offset = 0;
+  if (bw->buf.bit_offset == BITS_BYTE) {
+    bw->buf.position++;
+    bw->buf.bit_offset = 0;
   }
   // if we ran out of buffer space, dump the buffer
-  if (bs->position == BUF_SIZE) {
-    int err = dump_buffer(bs);
+  if (bw->buf.position == BUF_SIZE) {
+    int err = dump_buffer(bw);
     if (err != 0) {
       return err;
     }
@@ -79,30 +83,26 @@ int appendbits(unsigned char c, int width, Bitstream *bs) {
   return 0;
 }
 
-int writechar(char c, Bitstream *bs) {
-  return writebits(c, BITS_BYTE, bs);
+unsigned int readbit(BitReader *br) {
+  return readbits(1, br);
 }
 
-unsigned int readbit(Bitstream *bs) {
-  return readbits(1, bs);
+char readchar(BitReader *br) {
+  return readbits(BITS_BYTE, br);
 }
 
-unsigned int readbits(int width, Bitstream *bs) {
-
-}
-
-char readchar(Bitstream *bs) {
-
+unsigned int readbits(int width, BitReader *br) {
+  
 }
 
 int main() {
   FILE *fp = fopen("test", "w");
-  Bitstream *bs = make_stream(fp);
+  BitWriter *bw = make_stream(fp);
   for (int i = 0; i < 256; i++) {
-    writebits(~0, 1, bs);
+    writebits(~0, 1, bw);
     /* writebit(0, bs); */
   }
-  printf("pos: %d, offset: %d\n", bs->position, bs->bit_offset);
-  close_stream(bs);
+  printf("pos: %d, offset: %d\n", bw->buf.position, bw->buf.bit_offset);
+  close_stream(bw);
   fclose(fp);
 }
