@@ -1,6 +1,20 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
 
+// Module that implements reading and writing on the bit level
+// Writing is aligned on the byte level, just like regular i/o
+// Consequently, if the number of written bits is not a multiple
+// of 8, the rest will be padded with 0s, that will be indistinguishible
+// from the regular writes. If you need to tell the actual writes
+// from the padding consider encoding the length somewhere
+
+// Bits are placed in "little endian" fashion, the first bit to
+// be written goes to the 0th position (the rightmost), and next
+// bits will go right to left.
+// This does not affect functions in this module, but any other
+// program that will work with the output of writebits must
+// take bit order into account
+
 #define BUF_SIZE 1024
 
 struct bit_buffer {
