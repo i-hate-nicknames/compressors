@@ -4,3 +4,4 @@ compressor.o
 bitstream_test
 imagedump
 *.o
+*.tga
