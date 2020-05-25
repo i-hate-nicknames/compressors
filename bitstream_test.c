@@ -1,20 +1,23 @@
 #include <stdio.h>
-#include "bitstream.h"
+#include <string.h>
+#include "bitstream.c"
 
+char *test_file = "test";
 
-int main() {
-  FILE *fp = fopen("test", "w");
+void write_some_bits() {
+  FILE *fp = fopen(test_file, "w");
   BitWriter *bw = make_writer(fp);
-  for (int i = 0; i < 2; i++) {
-    writebits(0, 1, bw);
-    writebits(~0, 1, bw);
+  for (int i = 0; i < 256; i++) {
+    writebits(0, 8, bw);
+    writebits(~0, 8, bw);
   }
   printf("pos: %d, offset: %d\n", bw->buf.position, bw->buf.bit_offset);
   close_stream(bw);
   fclose(fp);
+}
 
-  printf("Reading byte by byte\n");
-  fp = fopen("test", "r");
+void read_test_bits() {
+  FILE *fp = fopen(test_file, "r");
   BitReader *br = make_reader(fp);
   do {
     printf("%x\n", current_byte(br->buf)); 
@@ -29,4 +32,25 @@ int main() {
     into = 0;
   }
   fclose(fp);
+}
+
+int main(int argc, char *argv[]) {
+  int do_read = 0, do_write = 0;
+  for (int i = 1; i < argc; i++) {
+    if (0 == strcmp("read", argv[i])) {
+      do_read = 1;
+      continue;
+    }
+    if (0 == strcmp("write", argv[i])) {
+      do_write = 1;
+      continue;
+    }
+  }
+  if (do_write) {
+    write_some_bits();
+  }
+  if (do_read) {
+    read_test_bits();
+  }
+  return 0;
 }
