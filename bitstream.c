@@ -10,6 +10,8 @@
 int dump_buffer(BitWriter *bw);
 int appendbits(unsigned char c, int width, BitWriter *bw);
 int next_byte(BitReader *br);
+unsigned int extract_bits(unsigned int from, int offset, int width);
+unsigned char current_byte(struct bit_buffer buf);
 
 BitWriter *make_writer(FILE *fp) {
   BitWriter *bw = (BitWriter *) malloc(sizeof(BitWriter));
@@ -77,9 +79,8 @@ int writebits(unsigned char c, int width, BitWriter *bw) {
 // assume it fits (remaining space in the byte is less than or
 // equal to width)
 int appendbits(unsigned char c, int width, BitWriter *bw) {
-  // cut the right portion of c and set it in the current byte
-  int mask = ~(-1 << width);
-  bw->buf.data[bw->buf.position] |= (c & mask) << bw->buf.bit_offset;
+  unsigned int data = extract_bits(c, 0, width);
+  bw->buf.data[bw->buf.position] |= data << bw->buf.bit_offset;
   bw->buf.bit_offset += width;
   // if we crossed byte boundary, go to the remaining byte
   if (bw->buf.bit_offset == BITS_BYTE) {
@@ -108,8 +109,7 @@ int readbits(int width, BitReader *br, unsigned int *into) {
   // read what we can from the current byte
   int width_remaining = BITS_BYTE - br->buf.bit_offset;
   int to_read_width = MIN(width, width_remaining);
-  unsigned char mask = ~(~0 << to_read_width) << br->buf.bit_offset;
-  *into |= (mask & br->buf.data[br->buf.position]) >> br->buf.bit_offset;
+  *into = extract_bits(current_byte(br->buf), br->buf.bit_offset, to_read_width);
   br->buf.bit_offset += to_read_width;
   /* printf("read smth: DDD\n"); */
   if (to_read_width < width) {
@@ -140,10 +140,24 @@ int next_byte(BitReader *br) {
   return (bytes_read > 0);
 }
 
+// extract width bits starting from offset
+// for example, 0 offset and 5 width will extract
+// first five bits
+// return number with first width bits set to the extracted
+// bits
+unsigned int extract_bits(unsigned int from, int offset, int width) {
+  unsigned char mask = ~(~0 << width) << offset;
+  return (mask & from) >> offset;
+}
+
+unsigned char current_byte(struct bit_buffer buf) {
+  return buf.data[buf.position];
+}
+
 int main() {
   FILE *fp = fopen("test", "w");
   BitWriter *bw = make_writer(fp);
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 2; i++) {
     writebits(0, 1, bw);
     writebits(~0, 1, bw);
   }
@@ -154,11 +168,9 @@ int main() {
   printf("Reading byte by byte\n");
   fp = fopen("test", "r");
   BitReader *br = make_reader(fp);
-  char c;
-  while (next_byte(br)) {
-    c = br->buf.data[br->buf.position];
-    printf("%x\n", c); 
-  }
+  do {
+    printf("%x\n", current_byte(br->buf)); 
+  } while(next_byte(br));
   fclose(fp);
   printf("Reading bit by bit\n");
   fp = fopen("test", "r");
