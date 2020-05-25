@@ -25,6 +25,7 @@ BitReader *make_reader(FILE *fp) {
   br->buf.position = 0;
   br->file = fp;
   br->size_bytes = 0;
+  next_byte(br);
   return br;
 }
 
@@ -107,8 +108,8 @@ int readbits(int width, BitReader *br, unsigned int *into) {
   // read what we can from the current byte
   int width_remaining = BITS_BYTE - br->buf.bit_offset;
   int to_read_width = MIN(width, width_remaining);
-  int mask = ~(~0 << to_read_width);
-  *into |= mask & br->buf.data[br->buf.position];
+  unsigned char mask = ~(~0 << to_read_width) << br->buf.bit_offset;
+  *into |= (mask & br->buf.data[br->buf.position]) >> br->buf.bit_offset;
   br->buf.bit_offset += to_read_width;
   /* printf("read smth: DDD\n"); */
   if (to_read_width < width) {
@@ -117,13 +118,13 @@ int readbits(int width, BitReader *br, unsigned int *into) {
     if (!next_byte(br)) {
       return to_read_width;
     }
-    int remaining = 0;
-    int bits_read = !readbits(width-to_read_width, br, &remaining);
-    if (bits_read == 0) {
-      return to_read_width;
-    }
-    *into = (*into << bits_read) | remaining;
+    unsigned int rest = 0;
+    int rest_width = width - to_read_width;
+    int bits_read = readbits(rest_width, br, &rest);
+    *into = (*into << bits_read) | rest;
     return to_read_width + bits_read;
+  } else {
+    return to_read_width;
   }
 }
 
@@ -143,18 +144,29 @@ int main() {
   FILE *fp = fopen("test", "w");
   BitWriter *bw = make_writer(fp);
   for (int i = 0; i < 3; i++) {
+    writebits(0, 1, bw);
     writebits(~0, 1, bw);
-    /* writebit(0, bs); */
   }
   printf("pos: %d, offset: %d\n", bw->buf.position, bw->buf.bit_offset);
   close_stream(bw);
   fclose(fp);
 
-  printf("Reading :DDD\n");
+  printf("Reading byte by byte\n");
   fp = fopen("test", "r");
   BitReader *br = make_reader(fp);
+  char c;
+  while (next_byte(br)) {
+    c = br->buf.data[br->buf.position];
+    printf("%x\n", c); 
+  }
+  fclose(fp);
+  printf("Reading bit by bit\n");
+  fp = fopen("test", "r");
+  br = make_reader(fp);
   unsigned int into = 0;
   while (readbits(1, br, &into)) {
     printf("Here be bit: %d\n", into);
+    into = 0;
   }
+  fclose(fp);
 }
