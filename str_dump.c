@@ -8,8 +8,9 @@ int main() {
   char buf[33];
   while ((c = getchar()) != EOF) {
     char *bin = itoa(c, 2, buf);
-    printf("%s\n", bin);
+    printf("%s", bin);
   }
+  printf("\n");
   return 0;
 }
 

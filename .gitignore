@@ -5,3 +5,4 @@ bitstream_test
 imagedump
 *.o
 *.tga
+str_dump
