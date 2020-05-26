@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
-DEPS = # .h files will go here
-STRDUMP_OBJ = str_dump.o
+DEPS = bitstream.h
+STRDUMP_OBJ = str_dump.o bitstream.o
 IMGDUMP_OBJ = imagedump.o bitstream.o
 STREAM_TEST_OBJ = bitstream_test.o
 
@@ -9,7 +9,7 @@ STREAM_TEST_OBJ = bitstream_test.o
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: str_dump bitstream_test imagedump clean
+all: str_dump bitstream_test imagedump
 
 str_dump: $(STRDUMP_OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
