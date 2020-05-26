@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bitstream.h"
+#include "compressor.h"
 
 #define MAX_LEN 255
 
@@ -37,24 +38,4 @@ void runlength_compress(FILE *in, FILE *out) {
     current_len++;
   }
   putc(current_len, out);
-}
-
-int main(int argc, char *argv[]) {
-  char *usage = "Please, provide an argument: -"
-    "for compression, + for decompression\n";
-  
-  if (argc != 2) {
-    printf(usage);
-    return 1;
-  }
-  char *arg = argv[1];
-  if (0 == strcmp("+", arg)) {
-    runlength_decompress(stdin, stdout);
-  } else if (0 == strcmp("-", arg)) {
-    runlength_compress(stdin, stdout);
-  } else {
-    printf(usage);
-    return 1;
-  }
-  return 0;
 }
