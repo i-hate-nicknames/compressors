@@ -45,6 +45,9 @@ int dump_buffer(BitWriter *bw) {
   int written = fwrite(bw->buf.data, 1, write_bytes, bw->file);
   bw->buf.position = 0;
   bw->buf.bit_offset = 0;
+  // when we dump the buffer, we want the new buffer
+  // start with 0
+  bw->buf.data[0] = 0;
   if (write_bytes != written) {
     return 1;
   }
@@ -86,6 +89,9 @@ int appendbits(unsigned char c, int width, BitWriter *bw) {
   if (bw->buf.bit_offset == BITS_BYTE) {
     bw->buf.position++;
     bw->buf.bit_offset = 0;
+    // set next byte in the buffer to 0, because there may
+    // be data from the previous buffer run
+    bw->buf.data[bw->buf.position] = 0;
   }
   // if we ran out of buffer space, dump the buffer
   if (bw->buf.position == BUF_SIZE) {
