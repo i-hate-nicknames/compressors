@@ -36,10 +36,10 @@ int main(int argc, char *argv[]) {
   }
 
   if (argc >= 4) {
-    out = open_or_fail(argv[3], "w+");
-    in = open_or_fail(argv[2], "r");
+    out = open_or_fail(argv[3], "wb+");
+    in = open_or_fail(argv[2], "rb");
   } else if (argc == 3) {
-    in = open_or_fail(argv[2], "w+");
+    in = open_or_fail(argv[2], "wb+");
   }
 
   // todo: more compression algorithms be here
