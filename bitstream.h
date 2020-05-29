@@ -1,6 +1,6 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
-
+#include <stdbool.h>
 // Module that implements reading and writing on the bit level
 // Writing is aligned on the byte level, just like regular i/o
 // Consequently, if the number of written bits is not a multiple
@@ -53,20 +53,29 @@ BitReader *make_reader(FILE *fp);
 // close this stream, forcing writes to be called on the file
 // stream pointer becomes invalid after this call
 // Note: this doesn't close the underlying file
-int close_stream(BitWriter *bw);
+// Return true on success, false on error
+// When false is returned, errno is set to the number code of
+// the error
+bool close_stream(BitWriter *bw);
+
+// The following functions use fread/fwrite under the hood.
+// To save me lines of code
 
 // write a single bit to the stream. The least significant
 // bit of c will be written
-int writebit(unsigned char c, BitWriter *bw);
+// return true on success, false on error
+bool writebit(unsigned char c, BitWriter *bw);
 
 // write first n bits from c into the stream
-int writebits(unsigned char c, int n, BitWriter *bw);
+// return true on success, false on error
+bool writebits(unsigned char c, int n, BitWriter *bw);
 
 // write the whole char into the bitstream
-int writechar(char c, BitWriter *bw);
+// return true on success, false on error
+bool writechar(char c, BitWriter *bw);
 
-// read a single bit from the stream
-int readbit(BitReader *br, unsigned int *into);
+// read a single bit from the stream, return success status
+bool readbit(BitReader *br, unsigned int *into);
 
 // read next n bits from the stream and set them in the number
 // into, that will have its first n bits set to the bits read
@@ -74,7 +83,7 @@ int readbit(BitReader *br, unsigned int *into);
 // assume an error or end of file.
 int readbits(int n, BitReader *br, unsigned int *into);
 
-// read next char from the stream
-int readchar(BitReader *br, unsigned int *into);
+// read next char from the stream, return success status
+bool readchar(BitReader *br, unsigned int *into);
 
 #endif

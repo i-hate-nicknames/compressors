@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include "bitstream.h"
 #include "compressor.h"
 
@@ -9,9 +11,17 @@ void runlength_decompress(FILE *in, FILE *out) {
   BitWriter *bw = make_writer(out);
   unsigned int current_value = 0;
   int current_len = 0;
+  bool written;
   while ((current_len = fgetc(in)) != EOF) {
     for (int i = 0; i < current_len; i++) {
-      writebit(current_value, bw);
+      written = writebit(current_value, bw);
+      if (!written) {
+        // todo: when error handling is added to the bitstream
+        // module, use its error functions to determine the nature
+        // of the error
+        printf("Error writing file\n");
+        exit(1);
+      }
     }
     current_value = !current_value;
   }
