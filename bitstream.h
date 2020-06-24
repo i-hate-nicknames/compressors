@@ -15,6 +15,20 @@
 // program that will work with the output of writebits must
 // take bit order into account
 
+// todo: change signatures to better types:
+// reading a bit should write into a bool, writing a bit should
+// take a bool
+// r/w a char should take an unsigned char
+
+// todo: change implementation to use read/write sys calls instead
+// of file i/o
+
+// todo: declare bit_stdin, bit_stdout global variables initialized properly
+
+// todo: rename for better readability: read_bit instead of readbit
+
+// todo: add flush function
+
 #define BUF_SIZE 1024
 
 struct bit_buffer {
