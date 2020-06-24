@@ -39,11 +39,11 @@ Htree *generate_tree(BitReader *br) {
 void expand(BitReader *br, BitWriter *bw, Htree *tree) {
   Htree *root = tree;
   unsigned int bit;
-  bool end = false;
-  while ((end = readbit(br, &bit))) {
+  bool more = false;
+  while ((more = readbit(br, &bit))) {
     Htree *node = root;
-    for (; !is_leaf(node); end = readbit(br, &bit)) {
-      if (end) {
+    for (; !is_leaf(node); more = readbit(br, &bit)) {
+      if (!more) {
         fprintf(stderr, "Error: invalid encoding, unexpected stream ending\n");
         exit(1);
       }
@@ -113,6 +113,20 @@ char *append_char(char *path, char val) {
   return result;
 }
 
+void encode_with_tree(Htree *tree, BitReader *br, BitWriter *bw) {
+  encode_tree(table, tree);
+  unsigned int byte;
+  while (readchar(br, &byte)) {
+    if (table[byte] == NULL) {
+      fprintf(stderr, "No encoding found for character #%d\n", byte);
+      exit(1);
+    }
+    for (int i = 0; table[byte][i] != '\0'; i++) {
+      writebit(table[byte][i] == '1', bw);
+    }
+  }
+}
+
 int main() {
   Htree *root = make_node();
   Htree *l = make_node();
@@ -126,9 +140,9 @@ int main() {
   r->val = 'a';
   ll->val = 'b';
   lr->val = 'c';
-  encode_tree(table, root);
-  printf("Encoding %c: %s\n", 'a', table['a']);
-  printf("Encoding %c: %s\n", 'b', table['b']);
-  printf("Encoding %c: %s\n", 'c', table['c']);
+  BitReader *br = make_reader(stdin);
+  BitWriter *bw = make_writer(stdout);
+  encode_with_tree(root, br, bw);
+  close_stream(bw);
   return 0;
 }
