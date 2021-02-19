@@ -15,6 +15,7 @@ Processor get_decompressor(char *name);
 static char *usage = "Please, provide an argument: -"
     "for compression, + for decompression\n";
 
+// todo: move to fileutils
 // open file identified by name with given mode
 // if file cannot be opened, exit the program and
 // print errno to standard output
@@ -30,6 +31,7 @@ FILE *open_or_fail(char *name, char *mode) {
 
 int main(int argc, char *argv[]) {
   int compress = 0;
+  // todo: extract to function and move to fileutils
   FILE *in = stdin, *out = stdout;
   Processor proc;
   if (argc < 2) {

@@ -22,14 +22,17 @@
 // take a bool
 // r/w a char should take an unsigned char
 
-// todo: change implementation to use read/write sys calls instead
-// of file i/o
-
-// todo: declare bit_stdin, bit_stdout global variables initialized properly
-
 // todo: rename for better readability: read_bit instead of readbit
 
 // todo: add flush function
+
+// add bwopen and bropen functions that will handle opening files
+// add bclose and bflush for bit writer
+
+// move implementation details (buf size, buffer) from header
+
+// todo: add error codes or some way of determining what error
+// did we get
 
 #define BUF_SIZE 1024
 
@@ -44,14 +47,14 @@ struct bit_buffer {
   char data[BUF_SIZE];
 };
 
-// Bitstream is a wrapper over a FILE that allows writing
-// and reading bits
+// BitWriter is a wrapper over FILE that allows writing on bit level
 typedef struct {
   // file from/into which to perform the io
   FILE *file;
   struct bit_buffer buf;
 } BitWriter;
 
+// BitReader is a wrapper over FILE that allows reading on bit level
 typedef struct {
   int size_bytes;
   FILE *file;
@@ -59,11 +62,11 @@ typedef struct {
 } BitReader;
 
 // make a new writer, positioned at the start of the file
-// assume file is opened for writing
+// fp should be opened for writing
 BitWriter *make_writer(FILE *fp);
 
 // make a new reader, positioned at the start of the file
-// assume file is opened for reading
+// fp should be opened for reading
 BitReader *make_reader(FILE *fp);
 
 // close this stream, forcing writes to be called on the file

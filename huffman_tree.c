@@ -29,10 +29,12 @@ bool is_leaf(Htree *tree) {
 }
 
 int dump_htree(Htree *tree, BitWriter *bw) {
+  // todo: implement
   return 0;
 }
 
 Htree *generate_tree(BitReader *br) {
+  // todo: implement
   return NULL;
 }
 
@@ -128,6 +130,7 @@ void encode_with_tree(Htree *tree, BitReader *br, BitWriter *bw) {
 }
 
 int main() {
+  // todo: test that it works
   Htree *root = make_node();
   Htree *l = make_node();
   Htree *r = make_node();

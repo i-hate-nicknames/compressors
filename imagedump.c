@@ -7,6 +7,11 @@ void draw_bits(unsigned char pixels[], int width, int height);
 
 int width = 500, height = 500;
 
+// todo: make size variable and pass as arguments
+
+// alternatively, read all bits and calculate optimal image
+// size based on number of bits
+
 int main(void) {
 
   /* int width = 500, height = 500; */
