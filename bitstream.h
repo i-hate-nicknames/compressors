@@ -1,6 +1,8 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
+
 #include <stdbool.h>
+#include <stdio.h>
 // Module that implements reading and writing on the bit level
 // Writing is aligned on the byte level, just like regular i/o
 // Consequently, if the number of written bits is not a multiple

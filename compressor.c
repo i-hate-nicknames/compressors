@@ -2,11 +2,22 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "compressor.h"
+#include "run_length.h"
+
+// Processor processes input file and dumps result
+// of the processing in the output file
+typedef void (*Processor)(FILE *in, FILE *out);
+
+Processor get_compressor(char *name);
+Processor get_decompressor(char *name);
+
 
 static char *usage = "Please, provide an argument: -"
     "for compression, + for decompression\n";
 
+// open file identified by name with given mode
+// if file cannot be opened, exit the program and
+// print errno to standard output
 FILE *open_or_fail(char *name, char *mode) {
   FILE *res;
   res = fopen(name, mode);

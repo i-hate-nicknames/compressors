@@ -1,7 +1,7 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdbool.h>
 #include "bitstream.h"
 
 #define BITS_BYTE 8
