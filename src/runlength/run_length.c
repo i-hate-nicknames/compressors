@@ -43,7 +43,6 @@ void runlength_compress(FILE *in, FILE *out) {
         putc(0, out);
         current_len = 0;
       }
-      
     }
     current_len++;
   }
