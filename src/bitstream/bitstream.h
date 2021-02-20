@@ -54,12 +54,14 @@ typedef struct {
   // file from/into which to perform the io
   FILE *file;
   struct bit_buffer buf;
+  unsigned long long bytes_written;
 } BitWriter;
 
 // BitReader is a wrapper over FILE that allows reading on bit level
 typedef struct {
   FILE *file;
   struct bit_buffer buf;
+  unsigned long long bytes_read;
 } BitReader;
 
 // make a new writer, positioned at the start of the file

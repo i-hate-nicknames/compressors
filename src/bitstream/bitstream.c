@@ -19,6 +19,7 @@ BitWriter *make_writer(FILE *fp) {
   bw->buf.bit_offset = 0;
   bw->buf.position = 0;
   bw->file = fp;
+  bw->bytes_written = 0;
   return bw;
 }
 
@@ -28,6 +29,7 @@ BitReader *make_reader(FILE *fp) {
   br->buf.position = 0;
   br->file = fp;
   br->buf.size = 0;
+  br->bytes_read = 0;
   next_byte(br);
   return br;
 }
@@ -49,6 +51,7 @@ bool dump_buffer(BitWriter *bw) {
   // when we dump the buffer, we want the new buffer
   // start with 0
   bw->buf.data[0] = 0;
+  bw->bytes_written += written;
   if (write_bytes != written) {
     return false;
   }
@@ -148,6 +151,7 @@ bool next_byte(BitReader *br) {
   int bytes_read = fread(br->buf.data, 1, BUF_SIZE, br->file);
   br->buf.size = bytes_read;
   br->buf.position = 0;
+  br->bytes_read += bytes_read;
   return bytes_read > 0;
 }
 
