@@ -22,4 +22,6 @@ FILE *get_output(int argc, char *argv[]);
 
 void close_files(FILE *in, FILE *out);
 
+void print_stats(unsigned long long in, unsigned long long out);
+
 #endif

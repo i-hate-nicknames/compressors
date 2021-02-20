@@ -56,3 +56,14 @@ void close_files(FILE *in, FILE *out) {
         perror("error closing output");
     }
 }
+
+void print_stats(unsigned long long in, unsigned long long out) {
+    char msg[512];
+    if (out == 0) {
+        sprintf(msg, "cannot calculate ratio");
+    } else {
+        double ratio = ((double) out) / ((double) in);
+        sprintf(msg, "ratio read to written: %.5f%%", ratio * 100);
+    }
+    fprintf(stderr, "bytes read: %llu, bytes written: %llu, %s\n", in, out, msg);
+}

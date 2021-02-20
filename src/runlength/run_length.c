@@ -28,8 +28,7 @@ void runlength_decompress(FILE *in, FILE *out) {
     current_value = !current_value;
   }
   close_stream(bw);
-  fprintf(stderr, "bytes read: %lld\n", total_read);
-  fprintf(stderr, "bytes written: %lld\n", bw->bytes_written);
+  print_stats(total_read, bw->bytes_written);
 }
 
 void runlength_compress(FILE *in, FILE *out) {
@@ -55,8 +54,7 @@ void runlength_compress(FILE *in, FILE *out) {
   }
   putc(current_len, out);
   total_written++;
-  fprintf(stderr, "bytes read: %lld\n", br->bytes_read);
-  fprintf(stderr, "bytes written: %lld\n", total_written);
+  print_stats(br->bytes_read, total_written);
 }
 
 int main(int argc, char *argv[]) {
