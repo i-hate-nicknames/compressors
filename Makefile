@@ -1,30 +1,25 @@
 CC = gcc
 CFLAGS = -Wall -g
-DEPS = bitstream.h compressor.h
-STRDUMP_OBJ = str_dump.o bitstream.o
-IMGDUMP_OBJ = imagedump.o bitstream.o
-STREAM_TEST_OBJ = bitstream_test.o
-COMP_OBJ = compressor.o run_length.o bitstream.o
 
-# make .o files from the .c files that have the same basename
-%.o: %.c $(DEPS)
+SRC_DIR = src
+
+BITSTREAM_DEP = bitstream/bitstream.h bitstream/bitstream.o
+CMDUTIL_DEP = cmdutil/cmdutil.o cmdutil/cmdutil.h
+
+RL_DEPS_RAW = runlength/run_length.o $(BITSTREAM_DEP) $(CMDUTIL_DEP)
+RL_DEPS = $(addprefix $(SRC_DIR)/, $(RL_DEPS_RAW))
+
+run_length: $(RL_DEPS)
+	$(CC) -o $@ $^ $(CFLAGS)
+
+IMGDUMP_DEPS_RAW = $(BITSTREAM_DEP) imagedump/imagedump.o
+IMGDUMP_DEPS = $(addprefix $(SRC_DIR)/, $(IMGDUMP_DEPS_RAW))
+
+imagedump: $(IMGDUMP_DEPS)
+	$(CC) -o $@ $^ $(CFLAGS)
+
+strdump: src/strdump/str_dump.o
+	$(CC) -o $@ $^ $(CFLAGS)
+
+%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
-
-all: str_dump bitstream_test imagedump compressor
-
-str_dump: $(STRDUMP_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-bitstream_test: $(STREAM_TEST_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-imagedump: $(IMGDUMP_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-compressor: $(COMP_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-.PHONY: clean
-
-clean:
-	rm -f *.o
