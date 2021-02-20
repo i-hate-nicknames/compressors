@@ -56,8 +56,10 @@ int main(int argc, char *argv[]) {
   in = get_input(argc-2, argv+2);
   out = get_output(argc-2, argv+2);
   if (compress) {
+    fprintf(stderr, "compressing\n");
     runlength_compress(in, out);
   } else {
+    fprintf(stderr, "decompressing\n");
     runlength_decompress(in, out);
   }
   close_files(in, out);

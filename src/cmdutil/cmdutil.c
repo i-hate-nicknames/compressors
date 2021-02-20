@@ -10,11 +10,11 @@ bool should_compress(int argc, char *argv[]) {
         printf("compress argument not found, expected + or -\n");
         exit(1);
     }
-    if (strcmp(argv[1], "+")) {
-        return false;
-    }
-    if (strcmp(argv[1], "-")) {
+    if (strcmp(argv[1], "-") == 0) {
         return true;
+    }
+    if (strcmp(argv[1], "+") == 0) {
+        return false;
     } else {
         printf("compress argument not found, expected + or -, got %s\n", argv[1]);
         exit(1);
