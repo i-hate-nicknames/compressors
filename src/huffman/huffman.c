@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "bitstream.h"
+#include "../bitstream/bitstream.h"
 
 // A huffman tree node
 typedef struct h_tree {

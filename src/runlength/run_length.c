@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "bitstream.h"
-#include "run_length.h"
+#include "../bitstream/bitstream.h"
+#include "../cmdutil/cmdutil.h"
 
 #define MAX_LEN 255
 
@@ -48,4 +48,18 @@ void runlength_compress(FILE *in, FILE *out) {
     current_len++;
   }
   putc(current_len, out);
+}
+
+int main(int argc, char *argv[]) {
+  FILE *in, *out;
+  bool compress = should_compress(argc, argv);
+  // skip program name and compressing option, pass pointer to the rest of arguments
+  in = get_input(argc-2, argv+2);
+  out = get_output(argc-2, argv+2);
+  if (compress) {
+    runlength_compress(in, out);
+  } else {
+    runlength_decompress(in, out);
+  }
+  close_files(in, out);
 }
