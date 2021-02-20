@@ -45,6 +45,8 @@ struct bit_buffer {
   // buffer to hold data before returning to client in reads
   // and before the actual writing for writes
   char data[BUF_SIZE];
+  // current buffer size in bytes
+  int size;
 };
 
 // BitWriter is a wrapper over FILE that allows writing on bit level
@@ -56,7 +58,6 @@ typedef struct {
 
 // BitReader is a wrapper over FILE that allows reading on bit level
 typedef struct {
-  int size_bytes;
   FILE *file;
   struct bit_buffer buf;
 } BitReader;

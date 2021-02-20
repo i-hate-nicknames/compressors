@@ -27,7 +27,7 @@ BitReader *make_reader(FILE *fp) {
   br->buf.bit_offset = 0;
   br->buf.position = 0;
   br->file = fp;
-  br->size_bytes = 0;
+  br->buf.size = 0;
   next_byte(br);
   return br;
 }
@@ -141,12 +141,12 @@ int readbits(int width, BitReader *br, unsigned int *into) {
 // that no more reads are possible from this reader
 bool next_byte(BitReader *br) {
   br->buf.bit_offset = 0;
-  if (br->buf.position < br->size_bytes-1) {
+  if (br->buf.position < br->buf.size-1) {
     br->buf.position++;
     return true;
   }
   int bytes_read = fread(br->buf.data, 1, BUF_SIZE, br->file);
-  br->size_bytes = bytes_read;
+  br->buf.size = bytes_read;
   br->buf.position = 0;
   return bytes_read > 0;
 }
