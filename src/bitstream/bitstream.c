@@ -58,15 +58,15 @@ bool dump_buffer(BitWriter *bw) {
   return true;
 }
 
-bool writebit(unsigned char c, BitWriter *bw) {
+bool writebit(bool c, BitWriter *bw) {
   return writebits(c, 1, bw);
 }
 
-bool writechar(char c, BitWriter *bw) {
+bool writechar(unsigned char c, BitWriter *bw) {
   return writebits(c, BITS_BYTE, bw);
 }
 
-bool writebits(unsigned char c, int width, BitWriter *bw) {
+bool writebits(unsigned int c, int width, BitWriter *bw) {
   int width_remaining = BITS_BYTE - bw->buf.bit_offset;
   // what we want to write doesn't fit in the current byte
   // we need to write the portion that fits

@@ -81,22 +81,22 @@ BitReader *make_reader(FILE *fp);
 bool close_stream(BitWriter *bw);
 
 // The following functions use fread/fwrite under the hood.
-// To save me lines of code
 
 // write a single bit to the stream. The least significant
 // bit of c will be written
 // return true on success, false on error
-bool writebit(unsigned char c, BitWriter *bw);
+bool writebit(bool c, BitWriter *bw);
 
 // write first n bits from c into the stream
 // return true on success, false on error
-bool writebits(unsigned char c, int n, BitWriter *bw);
+bool writebits(unsigned int c, int n, BitWriter *bw);
 
 // write the whole char into the bitstream
 // return true on success, false on error
-bool writechar(char c, BitWriter *bw);
+bool writechar(unsigned char c, BitWriter *bw);
 
 // read a single bit from the stream, return success status
+// set the bit to the least significant bit of into
 bool readbit(BitReader *br, unsigned int *into);
 
 // read next n bits from the stream and set them in the number
