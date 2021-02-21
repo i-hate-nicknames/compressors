@@ -42,9 +42,9 @@ void expand(BitReader *br, BitWriter *bw, Htree *tree) {
   Htree *root = tree;
   unsigned int bit;
   bool more = false;
-  while ((more = readbit(br, &bit))) {
+  while ((more = read_bit(br, &bit))) {
     Htree *node = root;
-    for (; !is_leaf(node); more = readbit(br, &bit)) {
+    for (; !is_leaf(node); more = read_bit(br, &bit)) {
       if (!more) {
         fprintf(stderr, "Error: invalid encoding, unexpected stream ending\n");
         exit(1);
@@ -55,7 +55,7 @@ void expand(BitReader *br, BitWriter *bw, Htree *tree) {
         node = node->right;
       }
     }
-    writechar(node->val, bw);
+    write_char(node->val, bw);
   }
 }
 
@@ -118,13 +118,13 @@ char *append_char(char *path, char val) {
 void encode_with_tree(Htree *tree, BitReader *br, BitWriter *bw) {
   encode_tree(table, tree);
   unsigned int byte;
-  while (readchar(br, &byte)) {
+  while (read_char(br, &byte)) {
     if (table[byte] == NULL) {
       fprintf(stderr, "No encoding found for character #%d\n", byte);
       exit(1);
     }
     for (int i = 0; table[byte][i] != '\0'; i++) {
-      writebit(table[byte][i] == '1', bw);
+      write_bit(table[byte][i] == '1', bw);
     }
   }
 }

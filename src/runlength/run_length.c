@@ -16,12 +16,9 @@ void runlength_decompress(FILE *in, FILE *out) {
   while ((current_len = fgetc(in)) != EOF) {
     total_read++;
     for (int i = 0; i < current_len; i++) {
-      written = writebit(current_value, bw);
+      written = write_bit(current_value, bw);
       if (!written) {
-        // todo: when error handling is added to the bitstream
-        // module, use its error functions to determine the nature
-        // of the error
-        printf("Error writing file\n");
+        perror("error writing file");
         exit(1);
       }
     }
@@ -36,7 +33,7 @@ void runlength_compress(FILE *in, FILE *out) {
   unsigned int into = 0, current_value = 0;
   unsigned char current_len = 0;
   unsigned long long total_written = 0;
-  while (readbit(br, &into)) {
+  while (read_bit(br, &into)) {
     if (into != current_value) {
       putc(current_len, out);
       current_len = 0;

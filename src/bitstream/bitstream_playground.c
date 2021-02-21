@@ -8,8 +8,8 @@ void write_some_bits() {
   FILE *fp = fopen(test_file, "w");
   BitWriter *bw = make_writer(fp);
   for (int i = 0; i < 256; i++) {
-    writebits(0, 8, bw);
-    writebits(~0, 8, bw);
+    write_bits(0, 8, bw);
+    write_bits(~0, 8, bw);
   }
   printf("pos: %d, offset: %d\n", bw->buf.position, bw->buf.bit_offset);
   close_stream(bw);
@@ -27,7 +27,7 @@ void read_test_bits() {
   fp = fopen("test", "r");
   br = make_reader(fp);
   unsigned int into = 0;
-  while (readbits(1, br, &into)) {
+  while (read_bits(1, br, &into)) {
     printf("Here be bit: %d\n", into);
     into = 0;
   }

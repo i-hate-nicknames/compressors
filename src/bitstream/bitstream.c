@@ -9,7 +9,7 @@
 #define MIN(x, y) ((x) > (y)) ? (y) : (x)
 
 bool dump_buffer(BitWriter *bw);
-bool appendbits(unsigned char c, int width, BitWriter *bw);
+bool append_bits(unsigned char c, int width, BitWriter *bw);
 bool next_byte(BitReader *br);
 unsigned int extract_bits(unsigned int from, int offset, int width);
 unsigned char current_byte(struct bit_buffer buf);
@@ -40,6 +40,10 @@ bool close_stream(BitWriter *bw) {
   return err;
 }
 
+// dump contents of the buffer into the underlying file of given bit writer,
+// and reset buffer state
+// return true on success, and false otherwise
+// check errno for i/o errors that happened during write
 bool dump_buffer(BitWriter *bw) {
   if (bw->buf.bit_offset != 0) {
     bw->buf.position++;
@@ -58,34 +62,36 @@ bool dump_buffer(BitWriter *bw) {
   return true;
 }
 
-bool writebit(bool c, BitWriter *bw) {
-  return writebits(c, 1, bw);
+bool write_bit(bool c, BitWriter *bw) {
+  return write_bits(c, 1, bw);
 }
 
-bool writechar(unsigned char c, BitWriter *bw) {
-  return writebits(c, BITS_BYTE, bw);
+bool write_char(unsigned char c, BitWriter *bw) {
+  return write_bits(c, BITS_BYTE, bw);
 }
 
-bool writebits(unsigned int c, int width, BitWriter *bw) {
+bool write_bits(unsigned int c, int width, BitWriter *bw) {
   int width_remaining = BITS_BYTE - bw->buf.bit_offset;
   // what we want to write doesn't fit in the current byte
   // we need to write the portion that fits
   if (width_remaining < width) {
     // write portion that fits in the current byte
-    int res = appendbits(c, width_remaining, bw);
+    int res = append_bits(c, width_remaining, bw);
     if (res != 0) {
       return res;
     }
     c = c >> width_remaining;
     width = width - width_remaining;
   }
-  return appendbits(c, width, bw);
+  return append_bits(c, width, bw);
 }
 
 // set first width bits of c into current byte in the buffer
 // assume it fits (remaining space in the byte is less than or
 // equal to width)
-bool appendbits(unsigned char c, int width, BitWriter *bw) {
+// return true on success, and false otherwise
+// check errno for i/o errors that happened during write
+bool append_bits(unsigned char c, int width, BitWriter *bw) {
   unsigned int data = extract_bits(c, 0, width);
   bw->buf.data[bw->buf.position] |= data << bw->buf.bit_offset;
   bw->buf.bit_offset += width;
@@ -106,15 +112,15 @@ bool appendbits(unsigned char c, int width, BitWriter *bw) {
   return true;
 }
 
-bool readbit(BitReader *br, unsigned int *into) {
-  return 1 == readbits(1, br, into);
+bool read_bit(BitReader *br, unsigned int *into) {
+  return 1 == read_bits(1, br, into);
 }
 
-bool readchar(BitReader *br, unsigned int *into) {
-  return BITS_BYTE == readbits(BITS_BYTE, br, into);
+bool read_char(BitReader *br, unsigned int *into) {
+  return BITS_BYTE == read_bits(BITS_BYTE, br, into);
 }
 
-int readbits(int width, BitReader *br, unsigned int *into) {
+int read_bits(int width, BitReader *br, unsigned int *into) {
   // read what we can from the current byte
   int width_remaining = BITS_BYTE - br->buf.bit_offset;
   int to_read_width = MIN(width, width_remaining);
@@ -129,7 +135,7 @@ int readbits(int width, BitReader *br, unsigned int *into) {
     }
     unsigned int rest = 0;
     int rest_width = width - to_read_width;
-    int bits_read = readbits(rest_width, br, &rest);
+    int bits_read = read_bits(rest_width, br, &rest);
     *into = (*into << bits_read) | rest;
     return to_read_width + bits_read;
   } else {
